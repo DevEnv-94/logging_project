@@ -26,6 +26,8 @@ Full project was automated with Ansible except graphs in Kibana.
 
     * Are all user sessions when accessing web resources safe?
 
+    * Determine the average number of active containers per month
+
     * Determine the average lifetime of a single container.
 
     * identify anomalies, if any exist.
@@ -362,3 +364,61 @@ server {
 }
 
 ```
+
+### Graphs on kibana and Answers to the questions which is above.
+
+##### TOP-7 IP clients accessing web servers.
+
+![TOP7](https://github.com/DevEnv-94/logging_project/blob/master/images/Screenshot%202022-06-15%20at%2023.56.40.png) 
+
+* TOP-7 IPs:
+    * 242.235.17.94
+    * 145.25.203.51
+    * 190.166.213.61
+    * 186.123.134.217
+    * 146.252.231.166
+    * 167.8.71.90
+    * 229.77.64.223
+
+* This represents 11.5% of the total requests
+
+##### Are all user sessions when accessing web resources safe?
+
+![user_session](https://github.com/DevEnv-94/logging_project/blob/master/images/Screenshot%202022-06-15%20at%2023.54.51.png)
+
+* 12,5% of user session was unsafe
+* Unsafe user session was only on http://pay.shop.com
+
+
+##### Determine the average number of active containers per month
+
+![containers_per_month](https://github.com/DevEnv-94/logging_project/blob/master/images/Screenshot%202022-06-15%20at%2023.53.36.png)
+
+* Unic count of containers divided to 12 = 294
+
+* if to be completely accurate it would be Unic count of containers divided to 357days(date range of historical data) multiply 366(days in 2020) and then divide to 12. ~~ 301,4
+
+##### Determine the average lifetime of a single container.
+
+![GET_request](https://github.com/DevEnv-94/logging_project/blob/master/images/Screenshot%202022-06-15%20at%2023.58.40.png)
+![Answer](https://github.com/DevEnv-94/logging_project/blob/master/images/Screenshot%202022-06-15%20at%2023.58.57.png)
+
+* Avarage lifetime of a single container is ~ 185.12 days
+
+
+##### Anomalies if exist
+
+![anomalies](https://github.com/DevEnv-94/logging_project/blob/master/images/Screenshot%202022-06-15%20at%2023.31.59.png)
+![anomalies](https://github.com/DevEnv-94/logging_project/blob/master/images/Screenshot%202022-06-15%20at%2023.40.17.png)
+![anomalies](https://github.com/DevEnv-94/logging_project/blob/master/images/Screenshot%202022-06-15%20at%2023.48.25.png)
+![anomalies](https://github.com/DevEnv-94/logging_project/blob/master/images/Screenshot%202022-06-15%20at%2023.51.55.png)
+
+
+Anomalies
+
+* Count request to sites was stably ~160-170 records per day in January, then in February grew up to ~ 500 request per day, dropped sharply around mid-March to ~330 request per day and again in April grew up to ~500 request per day and was satbly all to the last day of historical data. But Count of working containers and containers logs grew steadily all the time.
+
+* Working containers per day and containers logs increased only in the first half of the month.
+
+* The last day of historical data count of containers logs was dropped sharply 4 times, but working containers and request to sites this day was stable.
+
