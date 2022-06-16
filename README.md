@@ -33,7 +33,7 @@ Full project was automated with Ansible except graphs in Kibana.
  
 ### Log flow diagram
 
-![Elastic_scheme](https://github.com/DevEnv-94/Logs/blob/master/Elasticsearch_cluster/images/scheme.png)
+![Elastic_scheme](https://github.com/DevEnv-94/logging_project/blob/master/images/scheme.png)
 
 ### Fluentd config file on app servers
 
