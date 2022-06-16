@@ -216,7 +216,7 @@ pid.file: /run/kibana/kibana.pid
 
 ```
 
-### Elasticsearch cluster's elasticsearvh.yml config file
+### Elasticsearch cluster's elasticsearch.yml config file
 
 ```bash
 
