@@ -1,0 +1,38 @@
+#td-agent --dry-run -c /etc/td-agent/td-agent.conf 
+
+<source>
+  @type kafka
+
+  brokers {{ ansible_eth1.ipv4.address }}:9092
+  topics logs.apps
+  format json
+  add_prefix kafka
+
+</source>
+
+<match kafka.**>
+  @type rewrite_tag_filter
+
+  <rule>
+    key tag
+    pattern /(^.+)/
+    tag $1
+  </rule>
+  
+</match>
+
+<match {docker,syslogs,nginx}>
+  @type elasticsearch
+  hosts {{ hostvars[groups['elasticsearch'][0]]['ansible_eth1']['ipv4']['address'] }}:9200,{{ hostvars[groups['elasticsearch'][1]]['ansible_eth1']['ipv4']['address'] }}:9200,{{ hostvars[groups['elasticsearch'][2]]['ansible_eth1']['ipv4']['address'] }}:9200
+  index_name ${tag}
+  request_timeout 20s
+
+    <buffer>
+      @type file
+      path /var/log/td-agent/log_buf/
+      chunk_limit_size 6MB
+      flush_mode interval
+      flush_interval 2s
+      flush_at_shutdown true
+    </buffer>
+</match>

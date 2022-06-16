@@ -1,0 +1,28 @@
+---
+  
+-
+
+  hosts: elasticsearch
+
+  roles:
+    - elasticsearch
+
+-
+
+  hosts: fluent_aggregator
+
+  roles:
+    - kibana
+    - certbot_tls
+    - nginx
+    - fluent
+    - kafka
+
+-
+
+  hosts: apps
+
+  roles:
+    - fluent
+    
+

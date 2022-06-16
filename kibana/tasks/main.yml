@@ -1,0 +1,36 @@
+---
+# tasks file for kibana
+
+- name: add elasticsearch GPG key
+  apt_key:
+    url: https://artifacts.elastic.co/GPG-KEY-elasticsearch
+    state: present
+
+- name: add elasticsearch main repository to apt repository
+  apt_repository:
+    repo: deb https://artifacts.elastic.co/packages/8.x/apt stable main
+    state: present
+
+- name: Wait for automatic system updates to complete
+  shell: while lsof /var/lib/dpkg/lock-frontend ; do sleep 10; done;
+
+- name: Update repositories cache and install kibana
+  apt:
+    name: kibana
+    state: present
+    update_cache: True
+
+- name: Templates kibana.yml.j2 to /etc/kibana/kibana.yml
+  ansible.builtin.template:
+    src: templates/kibana.yml.j2
+    dest: /etc/kibana/kibana.yml
+    owner: root
+    group: root
+    mode: '0664'
+
+- name: Ensure that kibana restarted
+  ansible.builtin.systemd:
+    state: restarted
+    name: kibana
+    enabled: yes
+  tags: kibana

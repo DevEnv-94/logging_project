@@ -1,0 +1,68 @@
+
+# tasks for fluentd
+
+  - name: play fluent/tasks/node_perfomance.yml
+    import_tasks: fluent/tasks/node_perfomance.yml
+    when: hostvars[inventory_hostname].group_names[0] == "fluent_aggregator"
+    tags: fluent
+
+  - name: Wait for automatic system updates to complete
+    shell: while lsof /var/lib/dpkg/lock-frontend ; do sleep 10; done;
+    when: hostvars[inventory_hostname].group_names[0] == "fluent_aggregator"
+    
+  - name: Upgrade Ubuntu system
+    apt:
+      upgrade: full
+      update_cache: yes
+    when: hostvars[inventory_hostname].group_names[0] == "fluent_aggregator"
+    tags: fluent
+
+  - name: Wait for automatic system updates to complete
+    shell: while lsof /var/lib/dpkg/lock-frontend ; do sleep 10; done;
+
+  - name: Install Fluentd on Ubuntu Bionic
+    ansible.builtin.shell: curl -fsSL https://toolbelt.treasuredata.com/sh/install-ubuntu-bionic-td-agent4.sh | sh
+    when: hostvars[inventory_hostname].group_names[0] == "apps" 
+    args:
+      creates: /etc/td-agent/td-agent.conf
+    tags: fluent
+
+  - name: Install Fluentd on Ubuntu Focal
+    ansible.builtin.shell: curl -fsSL https://toolbelt.treasuredata.com/sh/install-ubuntu-focal-td-agent4.sh | sh
+    when: hostvars[inventory_hostname].group_names[0] == "fluent_aggregator" 
+    args:
+      creates: /etc/td-agent/td-agent.conf
+    tags: fluent
+
+  - name: Run acl role
+    include_role:
+      name: acl
+    when: hostvars[inventory_hostname].group_names[0] == "apps" 
+
+  - name: Templates td-agent.flunet.conf.j2 to /etc/td-agent/td-agent.conf
+    ansible.builtin.template:
+      src: templates/td-agent.fluent.conf.j2
+      dest: /etc/td-agent/td-agent.conf
+      owner: root
+      group: root
+      mode: '0664'
+    when: hostvars[inventory_hostname].group_names[0] == "fluent_aggregator" 
+    tags: fluent
+
+  - name: Templates td-agent.apps.conf.j2 to /etc/td-agent/td-agent.conf
+    ansible.builtin.template:
+      src: templates/td-agent.apps.conf.j2
+      dest: /etc/td-agent/td-agent.conf
+      owner: root
+      group: root
+      mode: '0664'
+    when: hostvars[inventory_hostname].group_names[0] == "apps" 
+    tags: fluent
+
+  - name: Make sure a fluentd service restarted
+    ansible.builtin.systemd:
+      state: restarted
+      name: td-agent
+      enabled: yes
+    tags: fluent
+

@@ -1,0 +1,6 @@
+---
+# defaults file for nginx
+
+domain: 
+nginx_basic_auth_login:
+nginx_basic_auth_password:

@@ -1,0 +1,133 @@
+---
+
+# Increase max open files to 65536
+
+  - name: Increase max open files to 65536
+    community.general.pam_limits:
+      domain: '*'
+      limit_type: '-'
+      limit_item: nofile
+      value: 65536
+
+# Optimize the Network Kernel Parameters
+  - name: net.core.somaxconn = 1024
+    ansible.posix.sysctl:
+      name: net.core.somaxconn
+      value: '1024'
+      sysctl_set: yes
+      state: present
+      reload: yes
+
+  - name: net.core.netdev_max_backlog = 5000
+    ansible.posix.sysctl:
+      name: net.core.netdev_max_backlog
+      value: '5000'
+      sysctl_set: yes
+      state: present
+      reload: yes
+
+  - name: net.core.rmem_max = 16777216
+    ansible.posix.sysctl:
+      name: net.core.rmem_max
+      value: '16777216'
+      sysctl_set: yes
+      state: present
+      reload: yes
+
+  - name: net.core.wmem_max = 16777216
+    ansible.posix.sysctl:
+      name: net.core.wmem_max
+      value: '16777216'
+      sysctl_set: yes
+      state: present
+      reload: yes
+
+  - name: net.ipv4.tcp_wmem = 4096 12582912 16777216
+    ansible.posix.sysctl:
+      name: net.ipv4.tcp_wmem
+      value: '4096 12582912 16777216'
+      sysctl_set: yes
+      state: present
+      reload: yes
+
+  - name: net.ipv4.tcp_rmem = 4096 12582912 16777216
+    ansible.posix.sysctl:
+      name: net.ipv4.tcp_rmem
+      value: '4096 12582912 16777216'
+      sysctl_set: yes
+      state: present
+      reload: yes
+
+  - name: net.ipv4.tcp_max_syn_backlog = 8096
+    ansible.posix.sysctl:
+      name: net.ipv4.tcp_max_syn_backlog
+      value: '8096'
+      sysctl_set: yes
+      state: present
+      reload: yes
+
+  - name: net.ipv4.tcp_slow_start_after_idle = 0
+    ansible.posix.sysctl:
+      name: net.ipv4.tcp_slow_start_after_idle
+      value: '0'
+      sysctl_set: yes
+      state: present
+      reload: yes
+
+  - name: net.ipv4.tcp_tw_reuse = 1
+    ansible.posix.sysctl:
+      name: net.ipv4.tcp_tw_reuse
+      value: '1'
+      sysctl_set: yes
+      state: present
+      reload: yes
+
+  - name: net.ipv4.ip_local_port_range = 10240 65535
+    ansible.posix.sysctl:
+      name: net.ipv4.ip_local_port_range
+      value: '10240 65535'
+      sysctl_set: yes
+      state: present
+      reload: yes
+
+# sticky bit symlink/hardlink protection
+  - name: fs.protected_hardlinks = 1
+    ansible.posix.sysctl:
+      name: fs.protected_hardlinks
+      value: '1'
+      sysctl_set: yes
+      state: present
+      reload: yes
+
+  - name: fs.protected_symlinks = 1
+    ansible.posix.sysctl:
+      name: fs.protected_symlinks
+      value: '1'
+      sysctl_set: yes
+      state: present
+      reload: yes
+
+#Disable ipv6
+  - name: net.ipv6.conf.all.disable_ipv6 to '1'
+    ansible.posix.sysctl:
+      name: net.ipv6.conf.all.disable_ipv6
+      value: '1'
+      state: present
+      sysctl_set: yes
+      reload: yes
+
+  - name: net.ipv6.conf.default.disable_ipv6 to '1'
+    ansible.posix.sysctl:
+      name: net.ipv6.conf.default.disable_ipv6
+      value: '1'
+      sysctl_set: yes
+      state: present
+      reload: yes
+    
+  - name: net.ipv6.conf.lo.disable_ipv6 to '1'
+    ansible.posix.sysctl:
+      name: net.ipv6.conf.lo.disable_ipv6
+      value: '1'
+      sysctl_set: yes
+      state: present
+      reload: yes

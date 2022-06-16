@@ -1,0 +1,107 @@
+---
+# tasks file for kafka
+
+- name: Wait for automatic system updates to complete
+  shell: while lsof /var/lib/dpkg/lock-frontend ; do sleep 10; done;
+
+- name: Update repositories cache and install "default-jre" package
+  apt:
+    name: default-jre
+    update_cache: yes
+    state: latest
+
+- name: Add the system user 'kafka' with home directory /etc/kafka and shell /sbin/nologin
+  ansible.builtin.user:
+      name: kafka
+      system: yes
+      create_home: yes
+      shell: /sbin/nologin
+      home: /etc/kafka
+
+- name: Check the /etc/kafka/kafka existance
+  stat:
+    path: /etc/kafka/kafka
+  register: directory_renamed
+
+- name: Unarchive kafka_2.13-3.1.0.tgz to /etc/kafka
+  ansible.builtin.unarchive:
+    src: https://dlcdn.apache.org/kafka/3.1.0/kafka_2.13-3.1.0.tgz
+    dest: /etc/kafka
+    remote_src: yes
+    group: kafka
+    owner: kafka
+  when: not directory_renamed.stat.exists
+
+- name: Check the /etc/kafka/kafka_2.13-3.1.0 existance
+  stat:
+    path: /etc/kafka/kafka_2.13-3.1.0
+  register: directory
+
+- name: Rename directory /etc/kafka/kafka_2.13-3.1.0 to /etc/kafka/kafka if /etc/kafka/kafka_2.13-3.1.0 does exist
+  command: mv /etc/kafka/kafka_2.13-3.1.0  /etc/kafka/kafka
+  when: directory.stat.exists
+
+- name: Create a directory /etc/kafka/logs
+  ansible.builtin.file:
+    path: /etc/kafka/logs
+    state: directory
+    mode: '0755'
+    owner: kafka
+    group: kafka
+
+- name: Create a directory /var/zookeeper
+  ansible.builtin.file:
+    path: /var/zookeeper
+    state: directory
+    mode: '0755'
+    owner: kafka
+    group: kafka
+
+- name: copy server.properties.j2 to /etc/kafka/kafka/config/server.properties
+  ansible.builtin.template:
+      src: templates/server.properties.j2
+      dest: /etc/kafka/kafka/config/server.properties
+      owner: kafka
+      group: kafka
+      mode: '0664'
+
+- name: copy zookeeper.properties to /etc/kafka/kafka/config/zookeeper.properties
+  ansible.builtin.copy:
+      src: files/zookeeper.properties
+      dest: /etc/kafka/kafka/config/zookeeper.properties
+      owner: kafka
+      group: kafka
+      mode: '0664'
+
+- name: copy zookeeper.service to /etc/systemd/system/zookeeper.service
+  ansible.builtin.copy:
+      src: files/zookeeper.service
+      dest: /etc/systemd/system/zookeeper.service
+      owner: root
+      group: root
+      mode: '0664'
+
+- name: copy kafka.service to /etc/systemd/system/kafka.service
+  ansible.builtin.copy:
+      src: files/kafka.service
+      dest: /etc/systemd/system/kafka.service
+      owner: root
+      group: root
+      mode: '0664'
+
+- name: Make sure a kafka and zookeeper services started
+  ansible.builtin.systemd:
+      state: started
+      name: "{{ item }}"
+      enabled: yes
+      daemon_reload: yes
+  with_items: 
+    - "zookeeper"
+    - "kafka"
+
+#- name: Pause for 5 seconds
+#  pause:
+#    seconds: 5
+
+#- name: bin/kafka-topics.sh --create --topic logs.apps --bootstrap-server {{ ansible_eth1.ipv4.address }}:9092
+#  ansible.builtin.shell: /etc/kafka/kafka/bin/kafka-topics.sh --create --topic logs.apps --bootstrap-server {{ ansible_eth1.ipv4.address }}:9092

@@ -1,0 +1,95 @@
+#td-agent --dry-run -c /etc/td-agent/td-agent.conf 
+
+<source>
+  @type tail
+  read_from_head true
+  path /var/lib/docker/containers/*/*.log
+  pos_file /var/log/td-agent/docker.log.pos
+  tag docker.{{ ansible_hostname }}.*
+  <parse>
+    @type json
+    time_type string
+    keep_time_key true  
+    time_format "%Y-%m-%dT%H:%M:%S.%L%Z"
+  </parse>
+</source>
+
+<source>
+  @type tail
+  read_from_head true
+  path /var/log/syslog
+  pos_file /var/log/td-agent/syslog.log.pos
+  tag syslogs.{{ ansible_hostname }}.*
+  <parse>
+    @type syslog
+    keep_time_key true
+  </parse>
+</source>
+
+<source>
+  @type tail
+  read_from_head true
+  path /var/log/nginx/access.log
+  pos_file /var/log/td-agent/nginx.log.pos
+  tag nginx.{{ ansible_hostname }}.*
+  <parse>
+    @type nginx
+    keep_time_key true
+  </parse>
+</source>
+
+<filter syslogs.**>
+  @type record_transformer
+  enable_ruby true
+
+  <record>
+    tag "${tag_parts[0]}"
+    host "${tag_parts[1]}"
+    file "${tag_parts[4]}"
+    @timestamp ${time.strftime('%Y-%m-%dT%H:%M:%S')}
+  </record>
+</filter>
+
+<filter nginx.**>
+  @type record_transformer
+  enable_ruby true
+
+  <record>
+    tag "${tag_parts[0]}"
+    host "${tag_parts[1]}"
+    file "${tag_parts[5]}"
+    @timestamp ${time.strftime('%Y-%m-%dT%H:%M:%S')} 
+  </record>
+</filter>
+
+<filter docker.**>
+  @type record_transformer
+  enable_ruby true
+
+  <record>
+    tag "${tag_parts[0]}"
+    host "${tag_parts[1]}"
+    container "${tag_parts[6]}"
+    @timestamp ${time.strftime('%Y-%m-%dT%H:%M:%S')}
+  </record>
+</filter>
+
+<match {docker.**,syslogs.**,nginx.**}>
+  @type kafka2
+  brokers {{ hostvars[groups['fluent_aggregator'][0]]['ansible_eth1']['ipv4']['address'] }}:9092
+  default_topic logs.apps
+  max_send_limit_bytes 15000000
+  <format>
+    @type json
+  </format>
+  <buffer>
+    @type file
+    path /var/log/td-agent/logs_buf/
+    chunk_limit_size 4MB
+    flush_mode interval
+    flush_interval 2s
+    flush_at_shutdown true  
+  </buffer>
+</match>
+
+

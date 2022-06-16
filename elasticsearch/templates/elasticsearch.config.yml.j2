@@ -1,0 +1,43 @@
+
+cluster.name: es_cluster
+
+node.name: es-node-{{node_number}}
+
+{% if node_number == 2 -%}
+node.roles: [ data, master, voting_only ]
+{% else -%}
+node.roles: [ data, master ]
+{% endif %}
+
+network.host: {{ ansible_eth1.ipv4.address }}
+
+http.port: 9200
+
+discovery.seed_hosts: ["{{ hostvars[groups['elasticsearch'][0]]['ansible_eth1']['ipv4']['address'] }}", "{{ hostvars[groups['elasticsearch'][1]]['ansible_eth1']['ipv4']['address'] }}","{{ hostvars[groups['elasticsearch'][2]]['ansible_eth1']['ipv4']['address'] }}"]
+
+{% if node_number == 1 -%}
+discovery.type: multi-node
+cluster.initial_master_nodes: ["es-node-1"]
+{% else -%}
+ 
+{% endif %}
+
+path.data: /var/lib/elasticsearch
+
+path.logs: /var/log/elasticsearch
+
+xpack.security.enabled: false
+
+xpack.security.enrollment.enabled: false
+
+xpack.security.http.ssl:
+  enabled: true
+  keystore.path: certs/http.p12
+
+
+xpack.security.transport.ssl:
+  enabled: true
+  verification_mode: certificate
+  keystore.path: certs/transport.p12
+  truststore.path: certs/transport.p12
+

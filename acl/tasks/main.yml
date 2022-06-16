@@ -1,0 +1,31 @@
+---
+# tasks file for acl
+
+
+      - name: Wait for automatic system updates to complete
+        shell: while lsof /var/lib/dpkg/lock-frontend ; do sleep 10; done;
+
+      - name: Update repositories cache and install acl
+        apt:
+          name: acl
+          state: present
+          update_cache: True
+
+      - name: Sets default ACL read permissions for fluentd on /var/lib/docker/containers/ recursively
+        ansible.builtin.shell: setfacl -R -m u:td-agent:rx /var/lib/docker/containers/
+          
+      - name: Grant user td-agent read access /var/log/syslog
+        ansible.posix.acl:
+          path: /var/log/syslog
+          entity: td-agent
+          etype: user
+          permissions: r
+          state: present
+
+      - name: Grant user td-agent read access /var/log/nginx/access.log
+        ansible.posix.acl:
+          path: /var/log/nginx/access.log
+          entity: td-agent
+          etype: user
+          permissions: r
+          state: present

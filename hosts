@@ -1,0 +1,43 @@
+[elasticsearch]
+     node_number=1  ansible_become_pass=
+     node_number=2  ansible_become_pass=
+     node_number=3  ansible_become_pass=
+
+
+[elasticsearch:vars]
+ansible_user=user
+ansible_become=true 
+
+Xms_heap_size=
+Xmx_heap_size=
+
+[fluent_aggregator]
+
+
+
+[fluent_aggregator:vars]
+ansible_user=user
+ansible_become=true 
+ansible_become_pass=
+
+domain=
+nginx_basic_auth_login=
+nginx_basic_auth_password=
+
+
+[apps]
+    ansible_become_pass=
+    ansible_become_pass=
+    ansible_become_pass=
+
+[apps:vars]
+ansible_user=user
+ansible_become=true 
+
+[all:children]
+apps
+fluent_aggregator
+elasticsearch
+
+#[all:vars]
+#ansible_ssh_private_key_file=

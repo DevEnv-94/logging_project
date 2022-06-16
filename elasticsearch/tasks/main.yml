@@ -1,0 +1,159 @@
+---
+
+# increase file descriptors
+
+      - name: Increase max open files to 65536
+        community.general.pam_limits:
+          domain: '*'
+          limit_type: '-'
+          limit_item: nofile
+          value: 65536
+
+
+# Kernel parametres
+      - name: Decrease swappines to '1'
+        ansible.posix.sysctl:
+          name: vm.swappiness
+          value: '1'
+          state: present
+          reload: yes
+
+      - name: Increase vm.max_map_count to '262144'
+        ansible.posix.sysctl:
+          name: vm.max_map_count
+          value: '262144'
+          state: present
+          reload: yes
+
+#Disable ipv6
+      - name: net.ipv6.conf.all.disable_ipv6 to '1'
+        ansible.posix.sysctl:
+          name: net.ipv6.conf.all.disable_ipv6
+          value: '1'
+          state: present
+          sysctl_set: yes
+          reload: yes
+
+      - name: net.ipv6.conf.default.disable_ipv6 to '1'
+        ansible.posix.sysctl:
+          name: net.ipv6.conf.default.disable_ipv6
+          value: '1'
+          sysctl_set: yes
+          state: present
+          reload: yes
+        
+      - name: net.ipv6.conf.lo.disable_ipv6 to '1'
+        ansible.posix.sysctl:
+          name: net.ipv6.conf.lo.disable_ipv6
+          value: '1'
+          sysctl_set: yes
+          state: present
+          reload: yes
+# tasks file for elasticsearch
+
+      - name: Wait for automatic system updates to complete
+        shell: while lsof /var/lib/dpkg/lock-frontend ; do sleep 10; done;
+
+      - name: Upgrade Ubuntu system
+        apt:
+          upgrade: full
+          update_cache: yes
+
+      - name: add elasticsearch GPG key
+        apt_key:
+          url: https://artifacts.elastic.co/GPG-KEY-elasticsearch
+          state: present
+
+      - name: add elasticsearch main repository to apt repository
+        apt_repository:
+          repo: deb https://artifacts.elastic.co/packages/8.x/apt stable main
+          state: present
+
+      - name: Wait for automatic system updates to complete
+        shell: while lsof /var/lib/dpkg/lock-frontend ; do sleep 10; done;
+
+      - name: Update repositories cache and install elasticsearch
+        apt:
+          name: "elasticsearch"
+          state: present
+          update_cache: True
+
+      - name: Copy a "elasticsearch.yml" to elasticsearch.config.yml (backup_original)
+        ansible.builtin.copy:
+          src: /etc/elasticsearch/elasticsearch.yml
+          dest: /etc/elasticsearch/elasticsearch.config.yml
+          remote_src: yes
+
+      - name: Templates elasticsearch.config.yml to /etc/elasticsearch/elasticsearch.yml
+        ansible.builtin.template:
+          src: templates/elasticsearch.config.yml.j2
+          dest: /etc/elasticsearch/elasticsearch.yml
+          owner: root
+          group: root
+          mode: '0664'
+
+      - name: Copy a "heap_size" to /etc/elasticsearch/jvm.options.d/heap_size
+        ansible.builtin.template:
+          src: templates/heap_size.j2
+          dest: /etc/elasticsearch/jvm.options.d/heap_size
+
+# to prevent SplitBrain, starting services is needed with right orded
+
+      - name: Start es_node-1
+        ansible.builtin.systemd:
+          state: started
+          name: elasticsearch
+          enabled: yes
+        when: node_number == 1 
+
+      - name: Pause for 5 seconds
+        pause:
+          seconds: 5
+
+      - name: Start es_node-2
+        ansible.builtin.systemd:
+          state: started
+          name: elasticsearch
+          enabled: yes
+        when: node_number == 2
+
+      - name: Pause for 5 seconds
+        pause:
+          seconds: 5
+
+      - name: Start es_node-3
+        ansible.builtin.systemd:
+          state: started
+          name: elasticsearch
+          enabled: yes
+        when: node_number == 3
+
+#curl -XPUT 'VM_IP:9200/index_name?pretty' -H 'Content-Type: application/json' -d'{"settings" : {"index" : {"number_of_shards" : ?, "number_of_replicas" : ? }}}'
+      - name: Create docker index
+        uri:
+          url: http://{{ hostvars[groups['elasticsearch'][0]]['ansible_eth1']['ipv4']['address'] }}:9200/docker
+          method: PUT
+          body: '{"settings" : {"index" : {"number_of_shards" : 1, "number_of_replicas" : 2 }}}'
+          body_format: json
+        when: node_number == 1 
+
+      - name: Create syslogs index
+        uri:
+          url: http://{{ hostvars[groups['elasticsearch'][0]]['ansible_eth1']['ipv4']['address'] }}:9200/syslogs
+          method: PUT
+          body: '{"settings" : {"index" : {"number_of_shards" : 1, "number_of_replicas" : 2 }}}'
+          body_format: json
+        when: node_number == 1 
+
+      - name: Create nginx index
+        uri:
+          url: http://{{ hostvars[groups['elasticsearch'][0]]['ansible_eth1']['ipv4']['address'] }}:9200/nginx
+          method: PUT
+          body: '{"settings" : {"index" : {"number_of_shards" : 1, "number_of_replicas" : 2 }}}'
+          body_format: json
+        when: node_number == 1 
+
+
+
+
+

@@ -1,0 +1,21 @@
+server.port: 5601
+server.host: "{{ ansible_eth1.ipv4.address }}"
+server.name: "Kibana"
+elasticsearch.hosts: 
+  - http://{{ hostvars[groups['elasticsearch'][0]]['ansible_eth1']['ipv4']['address'] }}:9200
+  - http://{{ hostvars[groups['elasticsearch'][1]]['ansible_eth1']['ipv4']['address'] }}:9200
+  - http://{{ hostvars[groups['elasticsearch'][2]]['ansible_eth1']['ipv4']['address'] }}:9200
+# Enables you to specify a file where Kibana stores log output.
+logging:
+  appenders:
+    file:
+      type: file
+      fileName: /var/log/kibana/kibana.log
+      layout:
+        type: json
+  root:
+    appenders:
+      - default
+      - file
+
+pid.file: /run/kibana/kibana.pid
