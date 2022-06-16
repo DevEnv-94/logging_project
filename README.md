@@ -418,7 +418,7 @@ Anomalies
 
 * Count request to sites was stably ~160-170 records per day in January, then in February grew up to ~ 500 request per day, dropped sharply around mid-March to ~330 request per day and again in April grew up to ~500 request per day and was satbly all to the last day of historical data. But Count of working containers and containers logs grew steadily all the time.
 
-* Working containers per day and containers logs increased only in the first half of the month.
+* Working containers per day and containers logs increased only in the first half of each month.
 
 * The last day of historical data count of containers logs was dropped sharply 4 times, but working containers and request to sites this day was stable.
 
