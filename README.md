@@ -188,6 +188,10 @@ message.max.bytes=21000000
 
 ```
 
+#### Node perfomances before install fluentd on fluentd_aggregator
+
+[Perfomances](https://github.com/DevEnv-94/logging_project/blob/master/fluent/tasks/node_perfomance.yml)
+
 ### Kibana config file
 
 ```bash
@@ -263,6 +267,98 @@ xpack.security.transport.ssl:
   truststore.path: certs/transport.p12
 
   ```
+
+
+#### Indexes
+
+* Created Indexes with one shard and two replicas
+
+* In Elastic Docs is recommended that one shard have not to be more than 50GB
+
+```bash
+ 
+#curl -XPUT 'VM_IP:9200/index_name?pretty' -H 'Content-Type: application/json' -d'{"settings" : {"index" : {"number_of_shards" : ?, "number_of_replicas" : ? }}}'
+      - name: Create docker index
+        uri:
+          url: http://{{ hostvars[groups['elasticsearch'][0]]['ansible_eth1']['ipv4']['address'] }}:9200/docker
+          method: PUT
+          body: '{"settings" : {"index" : {"number_of_shards" : 1, "number_of_replicas" : 2 }}}'
+          body_format: json
+        when: node_number == 1 
+
+      - name: Create syslogs index
+        uri:
+          url: http://{{ hostvars[groups['elasticsearch'][0]]['ansible_eth1']['ipv4']['address'] }}:9200/syslogs
+          method: PUT
+          body: '{"settings" : {"index" : {"number_of_shards" : 1, "number_of_replicas" : 2 }}}'
+          body_format: json
+        when: node_number == 1 
+
+      - name: Create nginx index
+        uri:
+          url: http://{{ hostvars[groups['elasticsearch'][0]]['ansible_eth1']['ipv4']['address'] }}:9200/nginx
+          method: PUT
+          body: '{"settings" : {"index" : {"number_of_shards" : 1, "number_of_replicas" : 2 }}}'
+          body_format: json
+        when: node_number == 1 
+
+```
+
+#### Elastic nodes perfomances before installing cluster 
+
+```yaml
+
+# increase file descriptors
+
+      - name: Increase max open files to 65536
+        community.general.pam_limits:
+          domain: '*'
+          limit_type: '-'
+          limit_item: nofile
+          value: 65536
+
+
+# Kernel parametres
+      - name: Decrease swappines to '1'
+        ansible.posix.sysctl:
+          name: vm.swappiness
+          value: '1'
+          state: present
+          reload: yes
+
+      - name: Increase vm.max_map_count to '262144'
+        ansible.posix.sysctl:
+          name: vm.max_map_count
+          value: '262144'
+          state: present
+          reload: yes
+
+#Disable ipv6
+      - name: net.ipv6.conf.all.disable_ipv6 to '1'
+        ansible.posix.sysctl:
+          name: net.ipv6.conf.all.disable_ipv6
+          value: '1'
+          state: present
+          sysctl_set: yes
+          reload: yes
+
+      - name: net.ipv6.conf.default.disable_ipv6 to '1'
+        ansible.posix.sysctl:
+          name: net.ipv6.conf.default.disable_ipv6
+          value: '1'
+          sysctl_set: yes
+          state: present
+          reload: yes
+        
+      - name: net.ipv6.conf.lo.disable_ipv6 to '1'
+        ansible.posix.sysctl:
+          name: net.ipv6.conf.lo.disable_ipv6
+          value: '1'
+          sysctl_set: yes
+          state: present
+          reload: yes
+
+```
 
 #### Heap_size.j2 file 
 
