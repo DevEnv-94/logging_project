@@ -369,7 +369,7 @@ xpack.security.transport.ssl:
 
 ```
 
-### Nginx config file on flunetd_aggregator server for HTTPS and proxy to Kibana
+### Nginx config file on flunetd_aggregator server for HTTPS, basic auth and proxy to Kibana
 
 ```bash
 
