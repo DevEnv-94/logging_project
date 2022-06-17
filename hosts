@@ -5,7 +5,7 @@
 
 
 [elasticsearch:vars]
-ansible_user=user
+ansible_user=
 ansible_become=true 
 
 Xms_heap_size=
@@ -16,7 +16,7 @@ Xmx_heap_size=
 
 
 [fluent_aggregator:vars]
-ansible_user=user
+ansible_user=
 ansible_become=true 
 ansible_become_pass=
 
@@ -31,7 +31,7 @@ nginx_basic_auth_password=
     ansible_become_pass=
 
 [apps:vars]
-ansible_user=user
+ansible_user=
 ansible_become=true 
 
 [all:children]
