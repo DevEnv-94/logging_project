@@ -1,36 +1,32 @@
 # logging_project
 EFK stack
 
-This project was created to gain some experience with EFK stack: Elasticsearch, Fluentd and Kibana.
-All historical data is not real and created only for this project.
-Full project was automated with Ansible except graphs in Kibana.
+This project was created to gain experience with the EFK stack: Elasticsearch, Fluentd, and Kibana. All historical data is fictional and was created specifically for this project. The entire project was automated using Ansible, with the exception of the graphs in Kibana.
 
 
 ### Initial state
 
-* Three application servers 
+The initial state includes three application servers running Ubuntu 18.04, each with an Nginx web server that forwards traffic to Docker containers.
 
-* Ubuntu 18.04
+### The goals of the project are as follows:
 
-* Nginx Web servers on them which proxy to Docker containers
+* Collect all current and historical system logs
 
-### Targets
+* Collect all current and historical Docker container logs and Nginx logs
 
-* Reading of all current and historical system logs.
+* Create graphs in Kibana to show the following:
 
-* Reading of all current and historical Docker Containers logs and Nginx logs.
+    * Top 7 IP clients accessing web servers
 
-* Create Gaphs in Kibana and find:
+    * Status of user sessions when accessing web resources
 
-    * TOP-7 IP clients accessing web servers.
-
-    * Are all user sessions when accessing web resources safe?
-
-    * Determine the average number of active containers per month
+    * Average number of active containers per month
 
     * Determine the average lifetime of a single container.
 
-    * identify anomalies, if any exist.
+    * Average lifetime of a single container
+    
+    * Identify any anomalies that may exist.
 
  
 ### Log flow diagram
@@ -135,7 +131,7 @@ Full project was automated with Ansible except graphs in Kibana.
 
 ```
 
-### Server.properties kafka file (only what was changed, all others parametres default)
+### The server.properties file for Apache Kafka has the following modified parameters (all other parameters are set to their default values):
 
 ```bash
 
@@ -271,9 +267,9 @@ xpack.security.transport.ssl:
 
 #### Indexes
 
-* Created Indexes with one shard and two replicas
+* Indexes were created with one shard and two replicas. 
 
-* In Elastic Docs is recommended that one shard have not to be more than 50GB
+* According to the Elastic documentation, it is recommended that each shard should not exceed 50GB.
 
 ```bash
  
@@ -463,7 +459,7 @@ server {
 
 ### Graphs on kibana and Answers to the questions which is above.
 
-##### TOP-7 IP clients accessing web servers.
+##### Top 7 IP clients accessing web servers.
 
 ![TOP7](https://github.com/DevEnv-94/logging_project/blob/master/images/Screenshot%202022-06-15%20at%2023.56.40.png) 
 
@@ -478,7 +474,7 @@ server {
 
 * This represents 11.5% of the total requests
 
-##### Are all user sessions when accessing web resources safe?
+##### Status of user sessions when accessing web resources
 
 ![user_session](https://github.com/DevEnv-94/logging_project/blob/master/images/Screenshot%202022-06-15%20at%2023.54.51.png)
 
@@ -486,15 +482,13 @@ server {
 * Unsafe user session was only on http://pay.shop.com
 
 
-##### Determine the average number of active containers per month
+##### Average number of active containers per month
 
 ![containers_per_month](https://github.com/DevEnv-94/logging_project/blob/master/images/Screenshot%202022-06-15%20at%2023.53.36.png)
 
-* Unic count of containers divided to 12 = 294
+* The unique count of containers divided by 12 is 294. To be completely accurate, it would be necessary to divide the unique count of containers by 357 (the number of days in the range of historical data), multiply that number by 366 (the number of days in 2020), and then divide the result by 12. This would yield an average of approximately 301.4 containers per month.
 
-* if to be completely accurate it would be Unic count of containers divided to 357days(date range of historical data) multiply 366(days in 2020) and then divide to 12. ~~ 301,4
-
-##### Determine the average lifetime of a single container.
+##### Average lifetime of a single container
 
 ![GET_request](https://github.com/DevEnv-94/logging_project/blob/master/images/Screenshot%202022-06-15%20at%2023.58.40.png)
 ![Answer](https://github.com/DevEnv-94/logging_project/blob/master/images/Screenshot%202022-06-15%20at%2023.58.57.png)
@@ -512,9 +506,5 @@ server {
 
 Anomalies
 
-* Count request to sites was stably ~160-170 records per day in January, then in February grew up to ~ 500 request per day, dropped sharply around mid-March to ~330 request per day and again in April grew up to ~500 request per day and was satbly all to the last day of historical data. But Count of working containers and containers logs grew steadily all the time.
-
-* Working containers per day and containers logs increased only in the first half of each month.
-
-* The last day of historical data count of containers logs was dropped sharply 4 times, but working containers and request to sites this day was stable.
+* In January, the count of requests to sites was consistently around 160-170 records per day. However, in February, the count increased to around 500 requests per day, before dropping sharply to around 330 requests per day in mid-March. The count then rose again to around 500 requests per day in April, remaining stable until the end of the historical data. While the count of requests to sites fluctuated, the count of working containers and container logs increased steadily throughout the period. The count of container logs also saw a sharp drop on the last day of historical data, while the count of working containers and requests to sites remained stable.
 
